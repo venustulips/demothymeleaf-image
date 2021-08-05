@@ -1,17 +1,24 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout.html}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Content page</title>
+    <title>Image page</title>
+
     <script>
+
+        function setImagePreview() {
+            const contentType = document.getElementById('imageContentType').value;
+            const content = document.getElementById('image').value;
+            const previewEl = document.querySelector('img');
+            previewEl.src = 'data:' + contentType + ';base64,' + content;
+        }
+
         //https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL
         function previewFile() {
-            const preview = document.querySelector('img');
             const file = document.querySelector('input[type=file]').files[0];
             const reader = new FileReader();
 
             reader.addEventListener("load", function () {
-                // convert image file to base64 string
+                const preview = document.querySelector('img');
                 preview.src = reader.result;
                 const imageHidden = document.getElementById('image');
                 imageHidden.value = reader.result.substring(reader.result.indexOf(';base64,') + 8);
@@ -24,14 +31,15 @@
         }
     </script>
 </head>
-<body>
+<body onload="setImagePreview()">
 
-<section layout:fragment="content">
-    <form action="#" th:action="@{/}" th:object="${user}" method="post">
-        <img id="image-display" th:src="'data:' + *{imageContentType} + ';base64,' + *{imageStr}" width="200px" height="200px">
+<section>
+    <form action="#" th:action="@{/}" th:object="${binaryData}" method="post">
+        <img id="image-display" th:src="'data:' + *{imageContentType} + ';base64,' + *{image}" width="200px"
+             height="200px">
         <input id="imageContentType" name="imageContentType" type="hidden" th:value="*{imageContentType}">
-        <input id="image" name="image" type="hidden" th:value="*{imageStr}">
-        <input type="file" id="id-input" onchange="previewFile()">Upload</input>
+        <input id="image" name="image" type="hidden" th:value="*{{image}}">
+        <input type="file" id="id-input" onchange="previewFile()">
         <input type="submit">
     </form>
 </section>

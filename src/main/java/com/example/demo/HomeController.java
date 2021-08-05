@@ -1,78 +1,43 @@
 package com.example.demo;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.UUID;
 
 @Controller
 public class HomeController {
     @GetMapping("/")
     public ModelAndView home() {
         ModelAndView mv = new ModelAndView();
-        mv.setViewName("content1");
-        mv.addObject("user", new User());
+        mv.setViewName("content");
+        mv.addObject("binaryData", new BinaryData());
         return mv;
     }
 
     @PostMapping("/")
-    public ModelAndView createhome(@ModelAttribute("user") User user) {
+    public ModelAndView post(@ModelAttribute("binaryData") BinaryData binaryData) throws IOException {
         ModelAndView mv = new ModelAndView();
-        mv.setViewName("content1");
-
-        user.setImageStr(new String(user.getImage(), StandardCharsets.UTF_8));
-        mv.addObject("user", user);
+        mv.setViewName("content");
+        final var path = Path.of(UUID.randomUUID().toString().concat(".jpg"));
+        System.out.println("path = " + path);
+        Files.write(path, binaryData.getImage());
+        mv.addObject("binaryData", binaryData);
         return mv;
     }
-}
-
-class User {
-
-    private byte[] image;
-    private String imageContentType;
-
-    // must be a transient variable in JPA entity
-    private String imageStr;
 
 
-    public byte[] getImage() {
-        return image;
-    }
-
-    public User setImage(byte[] image) {
-        this.image = image;
-        return this;
-    }
-
-    public String getImageContentType() {
-        return imageContentType;
-    }
-
-    public User setImageContentType(String imageContentType) {
-        this.imageContentType = imageContentType;
-        return this;
-    }
-
-    public String getImageStr() {
-        return imageStr;
-    }
-
-    public User setImageStr(String imageStr) {
-        this.imageStr = imageStr;
-        return this;
-    }
-
-    @Override
-    public String toString() {
-        return "User{" +
-                "image=" + Arrays.toString(image) +
-                ", imageContentType='" + imageContentType + '\'' +
-                ", imageStr='" + imageStr + '\'' +
-                '}';
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+        binder.registerCustomEditor(byte[].class, new CustomByteArrayPropertyEditor());
     }
 }
+
